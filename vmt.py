@@ -19,15 +19,27 @@ def main() -> None:
     while parser.hasMoreLines():
         parser.advance()
         #print(parser.commandType(), parser.currentCmd)
-        if parser.commandType() == 'ERROR':
+        if parser.commandType() == 'C_ERROR':
             print('Translation terminated.')
             sys.exit(5)
-        elif parser.commandType() == 'COMMENT':
+        elif parser.commandType() == 'C_COMMENT':
             writer.writeComment(parser.currentCmd)
         elif parser.commandType() == 'C_PUSH' or parser.commandType() == 'C_POP':
             writer.writePushPop(parser.currentCmd, parser.arg0(), parser.arg1(), parser.arg2())
         elif parser.commandType() == 'C_ARITHMETIC':
             writer.writeArithmetic(parser.currentCmd, parser.arg0())
+        elif parser.commandType() == 'C_LABEL':
+            pass
+        elif parser.commandType() == 'C_GOTO':
+            pass
+        elif parser.commandType() == 'C_IF':
+            pass
+        elif parser.commandType() == 'C_FUNCTION':
+            pass
+        elif parser.commandType() == 'C_RETURN':
+            pass
+        elif parser.commandType() == 'C_CALL':
+            pass
         else:
             print('Translation terminated.')
             sys.exit(6)

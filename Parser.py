@@ -81,29 +81,45 @@ class Parser:
         # remove any trailing comment
         cmd = self.currentCmd.split('//')[0].strip()
         if len(cmd) == 0:
-            return 'COMMENT'
+            return 'C_COMMENT'
         else:
             self.cmdParts = cmd.split()
             if len(self.cmdParts) == 1:
                 if self.cmdParts[0] in self.arithmeticCommands:
                     return 'C_ARITHMETIC'
+                if self.cmdParts[0] == 'return':
+                    return 'C_RETURN'
                 else:
                     print(f'Invalid command on line {self.currentLine}:\n{self.currentCmd}')
-                    return 'ERROR'
+                    return 'C_ERROR'
+            elif len(self.cmdParts) == 2:
+                if self.cmdParts[0] == 'label':
+                    return 'C_LABEL'
+                elif self.cmdParts[0] == 'goto':
+                    return 'C_GOTO'
+                elif self.cmdParts[0] == 'if-goto':
+                    return 'C_IF'
+                else:
+                    print(f'Invalid command on line {self.currentLine}:\n{self.currentCmd}')
+                    return 'C_ERROR'
             elif len(self.cmdParts) == 3:
                 if not self.cmdParts[2].isnumeric():
                     print(f'Index not numeric on line {self.currentLine}:\n{self.currentCmd}')
-                    return 'ERROR'
+                    return 'C_ERROR'
                 if self.cmdParts[1] not in self.memorySegments:
                     print(f'Invalid memory segment on line {self.currentLine}:\n{self.currentCmd}')
-                    return 'ERROR'
+                    return 'C_ERROR'
                 if self.cmdParts[0] == 'push':
                     return 'C_PUSH'
                 elif self.cmdParts[0] == 'pop':
                     return 'C_POP'
+                elif self.cmdParts[0] == 'function':
+                    return 'C_FUNCTION'
+                elif self.cmdParts[0] == 'call':
+                    return 'C_CALL'
                 else:
                     print(f'Invalid command on line {self.currentLine}:\n{self.currentCmd}')
-                    return 'ERROR'
+                    return 'C_ERROR'
 
     def arg0(self) -> str:
         """
