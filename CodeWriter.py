@@ -15,30 +15,30 @@ class CodeWriter:
     def setFilename(self, filename: str) -> None:
         pass
 
-    def writeLabel(self, label: str) -> None:
-        pass
+    def writeLabel(self, cmd: str, label: str) -> None:
+        self.writeComment(f'// [{self.words}] {cmd}')
 
-    def writeGoto(self, label: str) -> None:
-        pass
+    def writeGoto(self, cmd: str, label: str) -> None:
+        self.writeComment(f'// [{self.words}] {cmd}')
 
-    def writeIf(self, label: str) -> None:
-        pass
+    def writeIf(self, cmd: str, label: str) -> None:
+        self.writeComment(f'// [{self.words}] {cmd}')
 
-    def writeFunction(self, functionName: str, nVars: int) -> None:
-        pass
+    def writeFunction(self, cmd: str, functionName: str, nVars: int) -> None:
+        self.writeComment(f'// [{self.words}] {cmd}')
 
-    def writeCall(self, functionName: str, nArgs: int) -> None:
-        pass
+    def writeCall(self, cmd: str, functionName: str, nArgs: int) -> None:
+        self.writeComment(f'// [{self.words}] {cmd}')
 
-    def writeReturn(self) -> None:
-        pass
+    def writeReturn(self, cmd: str) -> None:
+        self.writeComment(f'// [{self.words}] {cmd}')
 
-    def writeArithmetic(self, line: str, op: str) -> None:
+    def writeArithmetic(self, cmd: str, op: str) -> None:
         """
         Appends the code for the given arithmetic or logical command
         to the VM code list.
         """
-        self.writeComment(f'// [{self.words}] {line}')
+        self.writeComment(f'// [{self.words}] {cmd}')
         if op == 'add':
             self.instruction( '@SP')
             self.instruction( 'M=M-1')
@@ -129,9 +129,9 @@ class CodeWriter:
             self.instruction( 'A=M-1')
             self.instruction( 'M=-1')
 
-    def writePushPop(self, line: str, op: str, segment: str, index: str) -> None:
+    def writePushPop(self, cmd: str, op: str, segment: str, index: str) -> None:
         """Appends the code for a push or pop command to the VM code list."""
-        self.writeComment(f'// [{self.words}] {line}')
+        self.writeComment(f'// [{self.words}] {cmd}')
         if op == 'push':
             if segment == 'constant':
                 self.instruction(f'@{index}')       # get value to push in D
@@ -219,12 +219,12 @@ class CodeWriter:
         self.instruction('A=M')         # A = saved addr
         self.instruction('M=D')         # store value from stack
 
-    def writeComment(self, line: str) -> None:
+    def writeComment(self, cmd: str) -> None:
         """
         Appends the input line as is to the VM code list.
         Use for comments, blank lines.
         """
-        self.code.append(line + '\n')
+        self.code.append(cmd + '\n')
 
     def close(self, outFilename: str) -> None:
         """

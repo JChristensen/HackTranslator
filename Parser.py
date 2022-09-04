@@ -31,7 +31,7 @@ class Parser:
         # process command line arguments
         parser = argparse.ArgumentParser(
             description='A VM Translator for the Hack computer.',
-            epilog='VM Translator by Jack Christensen. Project 07 from "The Elements of Computing Systems" by Nisan and Schocken, MIT Press. Also www.nand2tetris.org')
+            epilog='VM Translator by Jack Christensen. Project 08 from "The Elements of Computing Systems" by Nisan and Schocken, MIT Press. Also www.nand2tetris.org')
         parser.add_argument('infile', help='Input file, e.g. [/dir/.../]Myfile.vm')
         args = parser.parse_args()
 
@@ -103,12 +103,14 @@ class Parser:
                     print(f'Invalid command on line {self.currentLine}:\n{self.currentCmd}')
                     return 'C_ERROR'
             elif len(self.cmdParts) == 3:
-                if not self.cmdParts[2].isnumeric():
-                    print(f'Index not numeric on line {self.currentLine}:\n{self.currentCmd}')
-                    return 'C_ERROR'
-                if self.cmdParts[1] not in self.memorySegments:
-                    print(f'Invalid memory segment on line {self.currentLine}:\n{self.currentCmd}')
-                    return 'C_ERROR'
+                # error checking for push and pop
+                if self.cmdParts[0] == 'push' or self.cmdParts[0] == 'pop':
+                    if not self.cmdParts[2].isnumeric():
+                        print(f'Index not numeric on line {self.currentLine}:\n{self.currentCmd}')
+                        return 'C_ERROR'
+                    if self.cmdParts[1] not in self.memorySegments:
+                        print(f'Invalid memory segment on line {self.currentLine}:\n{self.currentCmd}')
+                        return 'C_ERROR'
                 if self.cmdParts[0] == 'push':
                     return 'C_PUSH'
                 elif self.cmdParts[0] == 'pop':

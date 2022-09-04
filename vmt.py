@@ -29,17 +29,17 @@ def main() -> None:
         elif parser.commandType() == 'C_ARITHMETIC':
             writer.writeArithmetic(parser.currentCmd, parser.arg0())
         elif parser.commandType() == 'C_LABEL':
-            pass
+            writer.writeLabel(parser.currentCmd, parser.arg0())
         elif parser.commandType() == 'C_GOTO':
-            pass
+            writer.writeLabel(parser.currentCmd, parser.arg0())
         elif parser.commandType() == 'C_IF':
-            pass
+            writer.writeLabel(parser.currentCmd, parser.arg0())
         elif parser.commandType() == 'C_FUNCTION':
-            pass
+            writer.writePushPop(parser.currentCmd, parser.arg0(), parser.arg1(), parser.arg2())
         elif parser.commandType() == 'C_RETURN':
-            pass
+            writer.writeArithmetic(parser.currentCmd, parser.arg0())
         elif parser.commandType() == 'C_CALL':
-            pass
+            writer.writePushPop(parser.currentCmd, parser.arg0(), parser.arg1(), parser.arg2())
         else:
             print('Translation terminated.')
             sys.exit(6)
