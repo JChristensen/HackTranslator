@@ -17,12 +17,21 @@ class CodeWriter:
 
     def writeLabel(self, cmd: str, label: str) -> None:
         self.writeComment(f'// [{self.words}] {cmd}')
+        # don't call self.instruction as we don't want to increment the word count
+        self.code.append(f'({label})\n')
 
     def writeGoto(self, cmd: str, label: str) -> None:
         self.writeComment(f'// [{self.words}] {cmd}')
+        self.instruction(f'@{label}')
+        self.instruction( '0;JMP')
 
     def writeIf(self, cmd: str, label: str) -> None:
         self.writeComment(f'// [{self.words}] {cmd}')
+        self.instruction( '@SP')        # A = SP addr
+        self.instruction( 'AM=M-1')     # SP--
+        self.instruction( 'D=M')        # D = top value from stack
+        self.instruction(f'@{label}')
+        self.instruction( 'D;JNE')      # jump if D is not zero
 
     def writeFunction(self, cmd: str, functionName: str, nVars: int) -> None:
         self.writeComment(f'// [{self.words}] {cmd}')
