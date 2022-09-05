@@ -28,7 +28,7 @@ class CodeWriter:
     def writeIf(self, cmd: str, label: str) -> None:
         self.writeComment(f'// [{self.words}] {cmd}')
         self.instruction( '@SP')        # A = SP addr
-        self.instruction( 'AM=M-1')     # SP--
+        self.instruction( 'AM=M-1')     # SP--; A = SP
         self.instruction( 'D=M')        # D = top value from stack
         self.instruction(f'@{label}')
         self.instruction( 'D;JNE')      # jump if D is not zero
@@ -50,15 +50,13 @@ class CodeWriter:
         self.writeComment(f'// [{self.words}] {cmd}')
         if op == 'add':
             self.instruction( '@SP')
-            self.instruction( 'M=M-1')
-            self.instruction( 'A=M')
+            self.instruction( 'AM=M-1')
             self.instruction( 'D=M')        # D = y
             self.instruction( 'A=A-1')      # M = x
             self.instruction( 'M=M+D')      # M = x + y
         elif op == 'sub':
             self.instruction( '@SP')
-            self.instruction( 'M=M-1')
-            self.instruction( 'A=M')
+            self.instruction( 'AM=M-1')
             self.instruction( 'D=M')        # D = y
             self.instruction( 'A=A-1')      # M = x
             self.instruction( 'M=M-D')      # M = x - y
@@ -69,15 +67,13 @@ class CodeWriter:
             self.instruction( 'M=-M')
         if op == 'and':
             self.instruction( '@SP')
-            self.instruction( 'M=M-1')
-            self.instruction( 'A=M')
+            self.instruction( 'AM=M-1')
             self.instruction( 'D=M')        # D = y
             self.instruction( 'A=A-1')      # M = x
             self.instruction( 'M=M&D')      # M = x & y
         elif op == 'or':
             self.instruction( '@SP')
-            self.instruction( 'M=M-1')
-            self.instruction( 'A=M')
+            self.instruction( 'AM=M-1')
             self.instruction( 'D=M')        # D = y
             self.instruction( 'A=A-1')      # M = x
             self.instruction( 'M=M|D')      # M = x | y
@@ -87,9 +83,8 @@ class CodeWriter:
             self.instruction( 'A=A-1')
             self.instruction( 'M=!M')
         elif op == 'eq':
-            self.instruction( '@SP')        # A = SP ptr
-            self.instruction( 'M=M-1')      # SP--
-            self.instruction( 'A=M')        # A = SP
+            self.instruction( '@SP')        # A = SP addr
+            self.instruction( 'AM=M-1')     # SP--; A = SP
             self.instruction( 'D=M')        # D = y
             self.instruction( 'A=A-1')      # M = x
             self.instruction( 'D=M-D')      # result in D
@@ -104,9 +99,8 @@ class CodeWriter:
             self.instruction( 'A=M-1')
             self.instruction( 'M=-1')
         elif op == 'lt':                    # x < y
-            self.instruction( '@SP')        # A = SP ptr
-            self.instruction( 'M=M-1')      # SP--
-            self.instruction( 'A=M')        # A = SP
+            self.instruction( '@SP')        # A = SP addr
+            self.instruction( 'AM=M-1')     # SP--; A = SP
             self.instruction( 'D=M')        # D = y
             self.instruction( 'A=A-1')      # M = x
             self.instruction( 'D=M-D')      # result in D
@@ -121,9 +115,8 @@ class CodeWriter:
             self.instruction( 'A=M-1')
             self.instruction( 'M=-1')
         elif op == 'gt':                    # x > y
-            self.instruction( '@SP')        # A = SP ptr
-            self.instruction( 'M=M-1')      # SP--
-            self.instruction( 'A=M')        # A = SP
+            self.instruction( '@SP')        # A = SP addr
+            self.instruction( 'AM=M-1')     # SP--; A = SP
             self.instruction( 'D=M')        # D = y
             self.instruction( 'A=A-1')      # M = x
             self.instruction( 'D=M-D')      # result in D
@@ -221,8 +214,7 @@ class CodeWriter:
     def pop15(self) -> None:
         """Pops the top value from the stack and stores it at the address contained in R15."""
         self.instruction('@SP')         # A = addr of SP
-        self.instruction('M=M-1')       # decrement SP
-        self.instruction('A=M')         # A = SP
+        self.instruction('AM=M-1')      # SP--; A = SP
         self.instruction('D=M')         # D = top item from stack
         self.instruction('@R15')
         self.instruction('A=M')         # A = saved addr
