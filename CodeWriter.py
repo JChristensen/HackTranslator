@@ -1,19 +1,28 @@
+import os
+import sys
+
 class CodeWriter:
     """
     Translates a parsed VM command into Hack assembly code.
     """
 
-    def __init__(self, progname: str) -> None:
+    def __init__(self) -> None:
         """Creates an empty list to hold the VM commands."""
         self.code = []              # lines of code are added to this list, written to output file later
         self.words = 0              # address of the next instruction to write
+        self.progname = ''          # for static variable names, filename only, no dir, no ext
         self.segDict = {'local':'LCL', 'argument':'ARG', 'this':'THIS', 'that':'THAT'}
-        self.progname = progname    # for static variable names
-
         # write bootstrap code here
 
     def setFilename(self, filename: str) -> None:
-        pass
+        """
+        Extract just the filename, without directory name or extension.
+        Must be called before before starting to parse each input file.
+        """
+        b = os.path.basename(filename)
+        s = b.rsplit(sep='.', maxsplit=1)
+        progname = s[0]
+        print(f'Translating {filename} ({progname})', file=sys.stderr)
 
     def writeLabel(self, cmd: str, label: str) -> None:
         self.writeComment(f'// [{self.words}] {cmd}')

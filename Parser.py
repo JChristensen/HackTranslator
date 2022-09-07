@@ -1,10 +1,5 @@
-import argparse
-import io
-import logging
-import logging.handlers
 import os
 import sys
-import time
 
 class Parser:
     """
@@ -13,7 +8,7 @@ class Parser:
     space (blank lines) and comments.
     """
 
-    def __init__(self):
+    def __init__(self, infile: str) -> None:
         """
         Process command line arguments, process the input filename,
         open and read it, construct the output filename.
@@ -28,40 +23,21 @@ class Parser:
         self.memorySegments = ['argument', 'local', 'static', 'constant', 'this', 'that', 'pointer', 'temp']
         self.filename = ''      # just the input filename (no dir, no ext) for CodeWriter static variables
 
-        # process command line arguments
-        parser = argparse.ArgumentParser(
-            description='A VM Translator for the Hack computer.',
-            epilog='VM Translator by Jack Christensen. Project 08 from "The Elements of Computing Systems" by Nisan and Schocken, MIT Press. Also www.nand2tetris.org')
-        parser.add_argument('infile', help='Input file, e.g. [/dir/.../]Myfile.vm')
-        args = parser.parse_args()
-
-        # process the input filename
-        inDir, inFilename = os.path.split(args.infile)
-        try:
-            self.filename, ext = inFilename.rsplit(sep='.', maxsplit=1)
-        except Exception as e:
-            print('Error: Input file must have .vm extension.', file=sys.stderr)
-            sys.exit(1)
-        if ext != 'vm':
-            print('Error: Input file must have .vm extension.', file=sys.stderr)
-            sys.exit(2)
-        if not self.filename[0].isupper():
-            print('Error: Input file must start with an upper-case letter.', file=sys.stderr)
-            sys.exit(3)
-
         # read the input file into a list
         try:
-            with open(args.infile, 'r') as f:
+            with open(infile, 'r') as f:
                 self.lines = f.readlines()
         except Exception as e:
-            print(f'Error reading {args.infile}: {str(e)}', file=sys.stderr)
+            print(f'Error reading {infile}: {str(e)}', file=sys.stderr)
             sys.exit(4)
         self.nLines = len(self.lines)
 
-        # construct the output filename
-        self.outFilename = self.filename + '.asm'
-        if inDir:
-            self.outFilename = inDir + os.sep + self.outFilename
+        # get just the filename without directory or extension
+        inDir, inFilename = os.path.split(infile)
+        self.filename, ext = inFilename.rsplit(sep='.', maxsplit=1)
+
+    def __del__(self) -> None:
+        print('Parser destructed.', file=sys.stderr)
 
     def hasMoreLines(self) -> bool:
         """Are there more commands in the input?"""
