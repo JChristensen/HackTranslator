@@ -37,7 +37,8 @@ class Parser:
         self.filename, ext = inFilename.rsplit(sep='.', maxsplit=1)
 
     def __del__(self) -> None:
-        print('Parser destructed.', file=sys.stderr)
+        #print('Parser destructed.', file=sys.stderr)
+        pass
 
     def hasMoreLines(self) -> bool:
         """Are there more commands in the input?"""

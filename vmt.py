@@ -62,7 +62,12 @@ def main() -> None:
         print(f'ERROR: No VM source files (*.vm) found in directory {dirName}', file=sys.stderr)
         sys.exit(5)
 
+    print(f'\n** VM TRANSLATOR starting for {args.source}', file=sys.stderr)
     writer = CodeWriter.CodeWriter()
+    for f in fileList:
+        if os.path.basename(f) == 'Sys.vm':
+            writer.writeBootstrap()
+            break
 
     for file in fileList:
         writer.setFilename(file)
@@ -86,18 +91,18 @@ def main() -> None:
             elif parser.commandType() == 'C_IF':
                 writer.writeIf(parser.currentCmd, parser.arg1())
             elif parser.commandType() == 'C_FUNCTION':
-                writer.writeFunction(parser.currentCmd, parser.arg0(), parser.arg1())
+                writer.writeFunction(parser.currentCmd, parser.arg1(), int(parser.arg2()))
             elif parser.commandType() == 'C_RETURN':
                 writer.writeReturn(parser.currentCmd)
             elif parser.commandType() == 'C_CALL':
-                writer.writeCall(parser.currentCmd, parser.arg0(), parser.arg1())
+                writer.writeCall(parser.currentCmd, parser.arg1(), parser.arg2())
             else:
                 print('Translation terminated.')
                 sys.exit(6)
 
     # all done
     writer.close(outFilename)
-    print(f'** VM TRANSLATOR COMPLETE **', file=sys.stderr)
+    print(f'** VM TRANSLATOR COMPLETE, output to {outFilename}', file=sys.stderr)
 
 if __name__ == '__main__':
     main()

@@ -12,7 +12,8 @@ class CodeWriter:
         self.words = 0              # address of the next instruction to write
         self.progname = ''          # for static variable names, filename only, no dir, no ext
         self.segDict = {'local':'LCL', 'argument':'ARG', 'this':'THIS', 'that':'THAT'}
-        # write bootstrap code here
+        self.currentFunction = ''
+        self.nReturn = 0
 
     def setFilename(self, filename: str) -> None:
         """
@@ -21,8 +22,17 @@ class CodeWriter:
         """
         b = os.path.basename(filename)
         s = b.rsplit(sep='.', maxsplit=1)
-        progname = s[0]
-        print(f'Translating {filename} ({progname})', file=sys.stderr)
+        self.progname = s[0]
+        print(f'Translating {filename} ({self.progname})', file=sys.stderr)
+
+    def writeBootstrap(self) -> None:
+        print('Writing bootstrap code')
+        self.instruction( '@256')
+        self.instruction( 'D=A')
+        self.instruction( '@SP')
+        self.instruction( 'M=D')
+        self.instruction( '@Sys.init')
+        self.instruction( '0;JMP')
 
     def writeLabel(self, cmd: str, label: str) -> None:
         self.writeComment(f'// [{self.words}] {cmd}')
@@ -44,12 +54,68 @@ class CodeWriter:
 
     def writeFunction(self, cmd: str, functionName: str, nVars: int) -> None:
         self.writeComment(f'// [{self.words}] {cmd}')
+        self.currentFunction = functionName
+        nReturn = 0
+        self.code.append(f'({functionName})\n')
+        for i in range(0, nVars):
+            self.writePushPop('*initialize local variable', 'push', 'constant', 0)        
 
     def writeCall(self, cmd: str, functionName: str, nArgs: int) -> None:
         self.writeComment(f'// [{self.words}] {cmd}')
+        returnLabel = f'{self.currentFunction}$ret.{self.nReturn}'
+        self.nReturn += 1
+        # push return addr
+        self.instruction(f'@{returnLabel}')
+        self.instruction( 'D=A')
+        self.pushD()
+        # push memory segment pointers
+        for s in ['LCL', 'ARG', 'THIS', 'THAT']:
+            self.instruction(f'@{s}')
+            self.instruction( 'D=M')
+            self.pushD()
+        # ARG = SP - 5 - nArgs
+        self.instruction( '@SP')
+        self.instruction( 'D=M')
+        self.instruction( '@ARG')
+        self.instruction( 'M=D')
+        self.instruction( '@5')
+        self.instruction( 'D=A')
+        self.instruction( '@ARG')
+        self.instruction( 'M=M-D')
+        self.instruction(f'@{nArgs}')
+        self.instruction( 'D=A')
+        self.instruction( '@ARG')
+        self.instruction( 'M=M-D')
+        # LCL = SP  (repositions LCL)
+        self.instruction( '@SP')
+        self.instruction( 'D=M')
+        self.instruction( '@LCL')
+        self.instruction( 'M=D')
+        # transfer to the function
+        self.instruction(f'@{functionName}')
+        self.instruction( '0;JMP')
+        # return label
+        self.code.append(f'({returnLabel})\n')
 
     def writeReturn(self, cmd: str) -> None:
         self.writeComment(f'// [{self.words}] {cmd}')
+        # save LCL in R14
+        self.instruction( '@LCL')
+        self.instruction( 'D=M')
+        self.instruction( '@R14')
+        self.instruction( 'M=D')
+        # save return addr in R15
+        self.instruction( '@R15')
+        self.instruction( 'M=D')
+        self.instruction( '@5')
+        self.instruction( 'D=A')
+        self.instruction( '@R15')
+        self.instruction( 'M=M-D')
+        self.instruction( 'A=M')
+        self.instruction( 'D=M')
+        self.instruction( '@R15')
+        self.instruction( 'M=D')
+        
 
     def writeArithmetic(self, cmd: str, op: str) -> None:
         """
@@ -241,7 +307,7 @@ class CodeWriter:
         Adds an infinite loop to the end of the output file to
         stop execution, and closes the file.
         """
-        self.code.append(f'// [{self.words}] Infinite loop\n')
+        self.code.append(f'// [{self.words}] *infinite loop\n')
         self.code.append('(__FINIS__)\n')
         self.code.append('  @__FINIS__\n')
         self.code.append('  0;JMP\n')
