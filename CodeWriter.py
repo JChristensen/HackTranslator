@@ -31,8 +31,9 @@ class CodeWriter:
         self.instruction( 'D=A')
         self.instruction( '@SP')
         self.instruction( 'M=D')
-        self.instruction( '@Sys.init')
-        self.instruction( '0;JMP')
+        if not self.currentFunction:
+            self.currentFunction = 'Sys.init'
+        self.writeCall('call Sys.init 0', 'Sys.init', '0')
 
     def writeLabel(self, cmd: str, label: str) -> None:
         self.writeComment(f'// [{self.words}] {cmd}')
@@ -58,7 +59,7 @@ class CodeWriter:
         nReturn = 0
         self.code.append(f'({functionName})\n')
         for i in range(0, nVars):
-            self.writePushPop('*initialize local variable', 'push', 'constant', 0)        
+            self.writePushPop('*initialize local variable', 'push', 'constant', 0)
 
     def writeCall(self, cmd: str, functionName: str, nArgs: int) -> None:
         self.writeComment(f'// [{self.words}] {cmd}')
@@ -104,19 +105,37 @@ class CodeWriter:
         self.instruction( 'D=M')
         self.instruction( '@R14')
         self.instruction( 'M=D')
-        # save return addr in R15
-        self.instruction( '@R15')
+        # save return addr in R13
+        self.instruction( '@R13')
         self.instruction( 'M=D')
         self.instruction( '@5')
         self.instruction( 'D=A')
-        self.instruction( '@R15')
+        self.instruction( '@R13')
         self.instruction( 'M=M-D')
         self.instruction( 'A=M')
         self.instruction( 'D=M')
-        self.instruction( '@R15')
+        self.instruction( '@R13')
         self.instruction( 'M=D')
-        
-
+        # copy the return value to the top of the caller's stack
+        self.writePushPop('*copy return value for caller', 'pop', 'argument', 0)
+        # reposition SP for caller
+        self.instruction( '@ARG')
+        self.instruction( 'D=M')
+        self.instruction( 'D=D+1')
+        self.instruction( '@SP')
+        self.instruction( 'M=D')
+        # THAT = *(frame-1), THIS = *(frame-2), ARG = *(frame-3), LCL = *(frame-4)
+        for i in range(4, 0, -1):
+            self.instruction( '@R14')
+            self.instruction( 'M=M-1')
+            self.instruction( 'A=M')
+            self.instruction( 'D=M')
+            self.instruction(f'@{i}')
+            self.instruction( 'M=D')
+        # go to the return address
+        self.instruction( '@R13')
+        self.instruction( 'A=M')
+        self.instruction( '0;JMP')
     def writeArithmetic(self, cmd: str, op: str) -> None:
         """
         Appends the code for the given arithmetic or logical command

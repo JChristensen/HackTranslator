@@ -66,6 +66,7 @@ def main() -> None:
     writer = CodeWriter.CodeWriter()
     for f in fileList:
         if os.path.basename(f) == 'Sys.vm':
+            writer.setFilename(f)
             writer.writeBootstrap()
             break
 
